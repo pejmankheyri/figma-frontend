@@ -9,14 +9,15 @@
         <form @submit.prevent="login" @keydown="form.onKeydown($event)">
           <input
             class="form-control form-control-lg font-14 fw-300 m-3"
-            v-model="form.username"
+            v-model="form.email"
             type="text"
-            name="username"
+            name="email"
             placeholder="Email Address"
           />
           <div
-            v-if="form.errors.has('username')"
-            v-html="form.errors.get('username')"
+            class="text-danger m-3"
+            v-if="form.errors.has('email')"
+            v-html="form.errors.get('email')"
           />
 
           <input
@@ -27,6 +28,7 @@
             placeholder="Password"
           />
           <div
+            class="text-danger m-3"
             v-if="form.errors.has('password')"
             v-html="form.errors.get('password')"
           />
@@ -48,17 +50,29 @@
 import Form from "vform";
 
 export default {
+  middleware: ["guest"],
   data: () => ({
     form: new Form({
-      username: "",
+      email: "",
       password: "",
     }),
   }),
 
   methods: {
-    async login() {
-      const response = await this.form.post("/login");
-      // ...
+    login() {
+      this.loading = true;
+      this.$auth
+        .loginWith("local", {
+          data: this.form,
+        })
+        .then((res) => {
+          console.log(res);
+          this.loading = false;
+        })
+        .catch((e) => {
+          this.form.errors.set(e.response.data.errors);
+          this.loading = false;
+        });
     },
   },
 };

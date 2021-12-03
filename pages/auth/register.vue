@@ -15,6 +15,7 @@
             placeholder="Name"
           />
           <div
+            class="text-danger m-3"
             v-if="form.errors.has('name')"
             v-html="form.errors.get('name')"
           />
@@ -27,6 +28,7 @@
             placeholder="Email Address"
           />
           <div
+            class="text-danger m-3"
             v-if="form.errors.has('email')"
             v-html="form.errors.get('email')"
           />
@@ -39,8 +41,22 @@
             placeholder="Password"
           />
           <div
+            class="text-danger m-3"
             v-if="form.errors.has('password')"
             v-html="form.errors.get('password')"
+          />
+
+          <input
+            class="form-control form-control-lg font-14 fw-300 m-3"
+            v-model="form.password_confirmation"
+            type="password"
+            name="password_confirmation"
+            placeholder="Password Confirmation"
+          />
+          <div
+            class="text-danger m-3"
+            v-if="form.errors.has('password_confirmation')"
+            v-html="form.errors.get('password_confirmation')"
           />
 
           <button
@@ -60,18 +76,26 @@
 import Form from "vform";
 
 export default {
+  middleware: ["guest"],
   data: () => ({
     form: new Form({
       name: "",
       email: "",
       password: "",
+      password_confirmation: "",
     }),
   }),
 
   methods: {
-    async register() {
-      const response = await this.form.post("/register");
-      // ...
+    register() {
+      this.form
+        .post(`/register`)
+        .then((res) => {
+          this.form.reset();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
   },
 };
