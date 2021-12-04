@@ -6,6 +6,14 @@
           Sign Up To <span class="nuxt-text">Nuxt</span> Cars<br />
           & Car Brands
         </h1>
+        <b-alert class="m-3" variant="success" :show="form.successful"
+          >Congratulation! Your registration is done successfully you can
+          <nuxt-link :to="{ name: 'login' }" class="color-purple"
+            >login</nuxt-link
+          >
+          now to the system</b-alert
+        >
+
         <form @submit.prevent="register" @keydown="form.onKeydown($event)">
           <input
             class="form-control form-control-lg font-14 fw-300 m-3"
@@ -98,20 +106,10 @@ export default {
         .post(`/register`)
         .then((res) => {
           this.form.reset();
-
-          this.$router.push("/");
-          this.makeToast("success", "success", "Model deleted successfully!");
         })
         .catch((error) => {
           console.log(error);
         });
-    },
-    makeToast(title, type = "info", message) {
-      this.$bvToast.toast(message, {
-        variant: type,
-        toaster: "b-toaster-top-center",
-        solid: true,
-      });
     },
   },
 };
