@@ -1,20 +1,29 @@
 <template>
   <div class="container">
+    <div class="d-flex justify-content-start">
+      <div class="">Welcome {{ $auth.user.name }}</div>
+      <div class="ml-1">
+        <a class="" href="#" @click.prevent="logout">
+          <i class="fa fa-lock"></i>
+          Logout
+        </a>
+      </div>
+    </div>
     <div class="row d-flex justify-content-center">
-      <a class="" href="#" @click.prevent="logout">
-        <i class="fa fa-lock"></i>
-        Logout
-      </a>
       <div class="col-md-12 d-flex mt-5">
         <div class="col-md-6">
-          <h2>Squarelovin <span class="nuxt-text">Test Task</span> Nuxt</h2>
+          <h2>
+            Squarelovin <span class="nuxt-text">Test <br />Task</span> Nuxt
+          </h2>
         </div>
-        <div class="col-md-6 d-flex justify-content-end">
+        <div class="col-md-6 col-sm-6 d-flex justify-content-end">
           <form class="form-inline my-2 my-lg-0">
             <input
               class="form-control mr-sm-2"
               type="search"
               placeholder="Search"
+              @keyup="search"
+              v-model="s"
               aria-label="Search"
             />
           </form>
@@ -34,6 +43,7 @@
                     v-model="addBrandForm.name"
                     type="text"
                     name="name"
+                    placeholder="Enter Car Name"
                   />
                   <div
                     class="text-danger m-3"
@@ -176,10 +186,9 @@
                                     <form
                                       @submit.prevent="
                                         editModelUpdate(
-                                          model.id,
-                                          brand.id,
-                                          brand.name,
-                                          model.name
+                                          currentModelId,
+                                          currentBrandId,
+                                          currentBrandName
                                         )
                                       "
                                       @keydown="editModelForm.onKeydown($event)"
@@ -209,7 +218,10 @@
                                   <b-button
                                     class="text-danger"
                                     @click.prevent="
-                                      confirm_destroy_model(model.id)
+                                      confirm_destroy_model(
+                                        model.id,
+                                        model.name
+                                      )
                                     "
                                     ><i class="fas fa-trash"></i
                                   ></b-button>
@@ -230,23 +242,51 @@
                       </template>
                     </b-modal>
 
-                    <base-button type="info" size="sm">
+                    <b-button
+                      @click.prevent="showBrandModal(brand.id, brand.name)"
+                    >
                       <i class="far fa-edit"></i>
-                    </base-button>
+                    </b-button>
+                    <b-modal v-model="editBrandModalShow" hide-footer>
+                      <h3>Edit Brand</h3>
+                      <form
+                        @submit.prevent="editBrandUpdate(currentBrandId)"
+                        @keydown="editBrandForm.onKeydown($event)"
+                      >
+                        <input
+                          class="form-control mb-2"
+                          v-model="currentBrandName"
+                          type="text"
+                          name="name"
+                        />
+                        <div
+                          class="text-danger m-3"
+                          v-if="editBrandForm.errors.has('name')"
+                          v-html="editBrandForm.errors.get('name')"
+                        />
+                        <button
+                          class="form-control button"
+                          type="submit"
+                          :disabled="editBrandForm.busy"
+                        >
+                          Save
+                        </button>
+                      </form>
+                    </b-modal>
 
-                    <a
-                      href="#"
-                      class="text-danger"
-                      @click.prevent="confirm_destroy(brand.id)"
-                      ><base-button type="danger" size="sm">
-                        <i class="fas fa-trash"></i> </base-button
-                    ></a>
+                    <b-button
+                      @click.prevent="
+                        confirm_destroy_brand(brand.id, brand.name)
+                      "
+                    >
+                      <i class="fas fa-trash"></i
+                    ></b-button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div class="pagin row d-block mt-2 mb-2 d-flex justify-content-end">
+          <div class="pagin row d-block mt-2 mb-2">
             <pagination
               :limit="2"
               align="center"
@@ -278,14 +318,22 @@ export default {
   data: () => ({
     modalShow: false,
     editModelShow: false,
+    editBrandModalShow: false,
     addBrandModalShow: false,
     addModelModalShow: false,
     models: {},
     brands: {},
     model_name: {},
     currentModelName: {},
+    currentModelId: {},
+    currentBrandName: {},
+    currentBrandId: {},
+    s: "",
     searching: false,
     searching_models: false,
+    editBrandForm: new Form({
+      name: "",
+    }),
     editModelForm: new Form({
       name: "",
     }),
@@ -313,9 +361,6 @@ export default {
     this.fetchBrands();
   },
   methods: {
-    logout() {
-      this.$auth.logout();
-    },
     async fetchBrands(page = 1) {
       this.searching = true;
       await this.$axios
@@ -328,27 +373,15 @@ export default {
         })
         .finally(() => (this.searching = false));
     },
-    save() {
-      this.form
-        .post(`/brand`)
-        .then((res) => {
-          this.form.reset();
-          this.fetchBrands();
-        })
-        .catch((error) => {
-          if (error.response.status === 401) {
-            this.$auth.logout();
-          }
-        });
-    },
-    confirm_destroy(id) {
+
+    confirm_destroy_brand(id, name) {
       this.$bvModal
-        .msgBoxConfirm("Are you sure about deleting brand?", {
+        .msgBoxConfirm("Are you sure about deleting " + name + " brand?", {
           size: "sm",
           buttonSize: "sm",
           okVariant: "danger",
-          okTitle: "yes",
-          cancelTitle: "cancel",
+          okTitle: "Yes",
+          cancelTitle: "Cancel",
           footerClass: "p-2 bg-light",
           hideHeaderClose: false,
           centered: true,
@@ -363,17 +396,54 @@ export default {
         });
     },
     async destroy_brand(id) {
-      console.log(id);
       const { data } = await this.$axios.$delete(`/brand/${id}`);
       this.makeToast("success", "success", "Brand deleted successfully!");
       this.fetchBrands();
     },
-    makeToast(title, type = "info", message) {
-      this.$bvToast.toast(message, {
-        variant: type,
-        toaster: "b-toaster-top-center",
-        solid: true,
-      });
+
+    async show_models(id, name) {
+      this.searching_models = true;
+      this.modalShow = true;
+      this.currentBrandName = name;
+      this.currentBrandId = id;
+      this.models = "";
+      await this.$axios
+        .get(`/brand/${id}/models`)
+        .then((res) => {
+          this.model_name = name;
+          this.models = res.data;
+        })
+        .catch((error) => {
+          if (error.response.status === 401) {
+            this.$auth.logout();
+          }
+        })
+        .finally(() => (this.searching_models = false));
+    },
+    showBrandModal(id, name) {
+      this.editBrandModalShow = true;
+      this.currentBrandId = id;
+      this.currentBrandName = name;
+    },
+    editBrandUpdate(id) {
+      this.editBrandForm.name = this.currentBrandName;
+      this.editBrandForm
+        .put(`/brand/${id}`)
+        .then((res) => {
+          console.log(res);
+          this.editBrandModalShow = false;
+          this.fetchBrands();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+
+    addBrandModal() {
+      this.addBrandModalShow = true;
+    },
+    addModelModal() {
+      this.addModelModalShow = true;
     },
     brandCreate() {
       this.addBrandForm
@@ -400,56 +470,33 @@ export default {
           console.log(error);
         });
     },
-    async show_models(id, name) {
-      this.searching_models = true;
-      this.modalShow = true;
-      this.models = "";
-      await this.$axios
-        .get(`/brand/${id}/models`)
-        .then((res) => {
-          this.model_name = name;
-          this.models = res.data;
-        })
-        .catch((error) => {
-          if (error.response.status === 401) {
-            this.$auth.logout();
-          }
-        })
-        .finally(() => (this.searching_models = false));
-    },
-    addBrandModal() {
-      this.addBrandModalShow = true;
-    },
-    addModelModal() {
-      this.addModelModalShow = true;
-    },
-    async edit_model(id, name) {
+
+    edit_model(id, name) {
       this.editModelShow = true;
       this.currentModelName = name;
+      this.currentModelId = id;
     },
-    editModelUpdate(id, brandId, brandName, name) {
-      console.log(brandId);
+    editModelUpdate(modelId, brandId, brandName) {
       this.editModelForm.name = this.currentModelName;
       this.editModelForm
-        .put(`/model/${id}`)
+        .put(`/model/${modelId}`)
         .then((res) => {
           this.editModelShow = false;
           this.show_models(brandId, brandName);
-          console.log(res);
           // this.editModelForm.reset();
         })
         .catch((error) => {
           console.log(error);
         });
     },
-    confirm_destroy_model(id) {
+    confirm_destroy_model(id, name) {
       this.$bvModal
-        .msgBoxConfirm("Are you sure about deleting model?", {
+        .msgBoxConfirm("Are you sure about deleting " + name + " model?", {
           size: "sm",
           buttonSize: "sm",
           okVariant: "danger",
-          okTitle: "yes",
-          cancelTitle: "cancel",
+          okTitle: "Yes",
+          cancelTitle: "Cancel",
           footerClass: "p-2 bg-light",
           hideHeaderClose: false,
           centered: true,
@@ -469,6 +516,25 @@ export default {
         this.modalShow = false;
         this.show_models(res.data.brand.id, res.data.brand.name);
       });
+    },
+
+    async search() {
+      await this.$axios.get(`/search?s=${this.s}`).then((res) => {
+        this.brands = res.data;
+      });
+    },
+
+    makeToast(title, type = "info", message) {
+      this.$bvToast.toast(message, {
+        variant: type,
+        toaster: "b-toaster-top-center",
+        solid: true,
+      });
+    },
+
+    logout() {
+      this.$auth.logout();
+      this.$router.push("index");
     },
   },
 };

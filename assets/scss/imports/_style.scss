@@ -10,7 +10,17 @@ body {
 .button {
     width: 100%;
     border: 1px solid #3db986;
-    color: #3db986;
+    color: #ffffff;
+    background-color: #3db986;
+    padding: 0.5rem 1rem;
+    line-height: 1.5;
+}
+
+.button :active {
+    width: 100%;
+    border: 1px solid #3db986;
+    color: #ffffff;
+    background-color: #3db986;
     padding: 0.5rem 1rem;
     line-height: 1.5;
 }

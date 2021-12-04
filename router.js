@@ -19,22 +19,7 @@ const routes = [{
         path: '/register',
         name: 'register',
         component: page('auth/register.vue'),
-    },
-    {
-        path: '/designs/:id/edit',
-        name: 'designs.edit',
-        component: page('user/designs/edit.vue'),
-    },
-    {
-        path: '/designs',
-        name: 'designs.search',
-        component: page('designs/search.vue'),
-    },
-    {
-        path: '/design/:slug',
-        name: 'designs.show',
-        component: page('designs/show.vue'),
-    },
+    }
 ]
 
 export function createRouter() {

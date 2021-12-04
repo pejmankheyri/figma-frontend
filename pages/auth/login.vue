@@ -40,6 +40,12 @@
           >
             Sign In
           </button>
+          <div class="m-3">
+            Not have account?
+            <nuxt-link :to="{ name: 'register' }" class="color-purple">
+              Sign Up
+            </nuxt-link>
+          </div>
         </form>
       </div>
     </div>
@@ -70,7 +76,7 @@ export default {
           this.loading = false;
         })
         .catch((e) => {
-          this.form.errors.set(e.response.data.errors);
+          this.loginData.errors.set(e.response.data.errors);
           this.loading = false;
         });
     },

@@ -66,6 +66,12 @@
           >
             Sign Up
           </button>
+          <div class="m-3">
+            Registered before?
+            <nuxt-link :to="{ name: 'login' }" class="color-purple"
+              >Sign In</nuxt-link
+            >
+          </div>
         </form>
       </div>
     </div>
