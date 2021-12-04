@@ -98,10 +98,20 @@ export default {
         .post(`/register`)
         .then((res) => {
           this.form.reset();
+
+          this.$router.push("/");
+          this.makeToast("success", "success", "Model deleted successfully!");
         })
         .catch((error) => {
           console.log(error);
         });
+    },
+    makeToast(title, type = "info", message) {
+      this.$bvToast.toast(message, {
+        variant: type,
+        toaster: "b-toaster-top-center",
+        solid: true,
+      });
     },
   },
 };
