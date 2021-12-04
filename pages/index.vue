@@ -1,14 +1,6 @@
 <template>
   <div class="container">
-    <div class="d-flex justify-content-start mt-2">
-      <div class="">Welcome {{ $auth.user.name }}</div>
-      <div class="ml-1">
-        <a class="" href="#" @click.prevent="logout">
-          <i class="fa fa-lock"></i>
-          Logout
-        </a>
-      </div>
-    </div>
+    <Navbar/>
     <div class="row d-flex justify-content-center">
       <div class="col-md-12 d-flex mt-5">
         <div class="col-md-6">
@@ -29,6 +21,7 @@
           </form>
           <div class="form-inline my-2 my-lg-0">
             <b-dropdown id="dropdown-1" text="Add Car / Brand" class="m-md-2">
+              <!-- Start Add Brand -->
               <b-dropdown-item @click.prevent="addBrandModal()"
                 >Add Car</b-dropdown-item
               >
@@ -50,15 +43,17 @@
                     v-if="addBrandForm.errors.has('name')"
                     v-html="addBrandForm.errors.get('name')"
                   />
-                  <button
+                  <base-button
                     class="form-control button"
                     type="submit"
                     :disabled="addBrandForm.busy"
                   >
                     Save
-                  </button>
+                  </base-button>
                 </form>
               </b-modal>
+              <!-- End Add Brand -->
+              <!-- Start Add Modal -->
               <b-dropdown-item @click.prevent="addModelModal()"
                 >Add Model</b-dropdown-item
               >
@@ -101,15 +96,16 @@
                     v-html="addModelForm.errors.get('brand_id')"
                   />
 
-                  <button
+                  <base-button
                     class="form-control button"
                     type="submit"
                     :disabled="addModelForm.busy"
                   >
                     Save
-                  </button>
+                  </base-button>
                 </form>
               </b-modal>
+              <!-- End Add Brand -->
             </b-dropdown>
           </div>
         </div>
@@ -146,7 +142,7 @@
                       @click.prevent="show_models(brand.id, brand.name)"
                       ><i class="fas fa-search"></i
                     ></b-button>
-
+                    <!-- Start Show Brand Models in Modal -->
                     <b-modal v-model="modalShow" hide-footer>
                       <div class="row" v-if="searching_models">
                         <base-loading>Loading brands ...</base-loading>
@@ -208,13 +204,13 @@
                                           editModelForm.errors.get('name')
                                         "
                                       />
-                                      <button
+                                      <base-button
                                         class="form-control button"
                                         type="submit"
                                         :disabled="editModelForm.busy"
                                       >
                                         Save
-                                      </button>
+                                      </base-button>
                                     </form>
                                   </b-modal>
                                   <b-button
@@ -237,8 +233,11 @@
                         <div class="p-4 w-100">
                           <div class="container">
                             <h6 class="text-center">
-                              There is no Models for this Brand ! <br>
-                              <b-button class="mt-2" @click.prevent="addModelModal()">
+                              There is no Models for this Brand ! <br />
+                              <b-button
+                                class="mt-2"
+                                @click.prevent="addModelModal()"
+                              >
                                 Add Model</b-button
                               >
                             </h6>
@@ -246,13 +245,14 @@
                         </div>
                       </template>
                     </b-modal>
+                    <!-- End Show Brand Models in Modal -->
                     <b-button
                       title="Add Model"
                       @click.prevent="addModelModal()"
                     >
                       <i class="fas fa-plus"></i
                     ></b-button>
-
+                    <!-- Start Edit Brand Models -->
                     <b-button
                       title="Edit Brand Name"
                       @click.prevent="showBrandModal(brand.id, brand.name)"
@@ -276,16 +276,16 @@
                           v-if="editBrandForm.errors.has('name')"
                           v-html="editBrandForm.errors.get('name')"
                         />
-                        <button
+                        <base-button
                           class="form-control button"
                           type="submit"
                           :disabled="editBrandForm.busy"
                         >
                           Save
-                        </button>
+                        </base-button>
                       </form>
                     </b-modal>
-
+                    <!-- End Edit Brand Models -->
                     <b-button
                       title="Delete Brand"
                       class="text-danger"
@@ -300,6 +300,7 @@
               </tbody>
             </table>
           </div>
+          <!-- Start Pagination For Brands -->
           <div class="pagin row d-block mt-2 mb-2">
             <pagination
               :limit="2"
@@ -311,6 +312,7 @@
               <span slot="next-nav">next</span></pagination
             >
           </div>
+          <!-- End Pagination For Brands -->
         </template>
         <template v-else>
           <div class="p-4 w-100">
@@ -326,8 +328,10 @@
 
 <script>
 import Form from "vform";
+import Navbar from '~/components/Navbar.vue';
 
 export default {
+  components: { Navbar },
   middleware: ["auth"],
   data: () => ({
     modalShow: false,
@@ -361,12 +365,12 @@ export default {
 
   head() {
     return {
-      title: "Figma Brands",
+      title: "Squarelovin Test",
       meta: [
         {
-          hid: "Figma Brands",
-          name: "Figma Brands",
-          content: "Figma Brands",
+          hid: "Squarelovin Test",
+          name: "Squarelovin Test",
+          content: "Squarelovin Test",
         },
       ],
     };
@@ -375,6 +379,7 @@ export default {
     this.fetchBrands();
   },
   methods: {
+    // This method gets all the brands by pagination user should login to see this method
     async fetchBrands(page = 1) {
       this.searching = true;
       await this.$axios
@@ -388,6 +393,7 @@ export default {
         .finally(() => (this.searching = false));
     },
 
+    // This method asks user for deleting brand confirmation
     confirm_destroy_brand(id, name) {
       this.$bvModal
         .msgBoxConfirm("Are you sure about deleting " + name + " brand?", {
@@ -409,12 +415,14 @@ export default {
           // An error occurred
         });
     },
+    // This method is deleting a brand and then fetchs the brands again
     async destroy_brand(id) {
       const { data } = await this.$axios.$delete(`/brand/${id}`);
       this.makeToast("success", "success", "Brand deleted successfully!");
       this.fetchBrands();
     },
 
+    // This method shows brand models in the table user should login to see this method
     async show_models(id, name) {
       this.searching_models = true;
       this.modalShow = true;
@@ -434,11 +442,13 @@ export default {
         })
         .finally(() => (this.searching_models = false));
     },
+    // This method changes the brand modal flag to True 
     showBrandModal(id, name) {
       this.editBrandModalShow = true;
       this.currentBrandId = id;
       this.currentBrandName = name;
     },
+    // This method is editing the brand name
     editBrandUpdate(id) {
       this.editBrandForm.name = this.currentBrandName;
       this.editBrandForm
@@ -452,12 +462,15 @@ export default {
         });
     },
 
+    // This method changes the add new brand modal flag to True 
     addBrandModal() {
       this.addBrandModalShow = true;
     },
+    // This method changes the add new model modal flag to True 
     addModelModal() {
       this.addModelModalShow = true;
     },
+    // This method creates the new brand
     brandCreate() {
       this.addBrandForm
         .post(`/brand`)
@@ -470,6 +483,7 @@ export default {
           console.log(error);
         });
     },
+    // This method creates the new model
     modelCreate() {
       this.addModelForm
         .post(`/model`)
@@ -484,11 +498,13 @@ export default {
         });
     },
 
+    // This method changes the edit new model modal flag to True 
     edit_model(id, name) {
       this.editModelShow = true;
       this.currentModelName = name;
       this.currentModelId = id;
     },
+    // This method updates the model
     editModelUpdate(modelId, brandId, brandName) {
       this.editModelForm.name = this.currentModelName;
       this.editModelForm
@@ -502,6 +518,7 @@ export default {
           console.log(error);
         });
     },
+    // This method asks user for deleting model confirmation
     confirm_destroy_model(id, name) {
       this.$bvModal
         .msgBoxConfirm("Are you sure about deleting " + name + " model?", {
@@ -523,6 +540,7 @@ export default {
           // An error occurred
         });
     },
+    // This method is deleting a model and then shows the models modal again
     async destroy_model(id) {
       await this.$axios.$delete(`/model/${id}`).then((res) => {
         this.makeToast("success", "success", "Model deleted successfully!");
@@ -531,23 +549,20 @@ export default {
       });
     },
 
+    // This method is for searching the brands and models
     async search() {
       await this.$axios.get(`/search?s=${this.s}`).then((res) => {
         this.brands = res.data;
       });
     },
 
+    // This method is for displaying the taosts
     makeToast(title, type = "info", message) {
       this.$bvToast.toast(message, {
         variant: type,
         toaster: "b-toaster-top-center",
         solid: true,
       });
-    },
-
-    logout() {
-      this.$auth.logout();
-      this.$router.push("index");
     },
   },
 };
