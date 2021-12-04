@@ -393,7 +393,7 @@ export default {
         .finally(() => (this.searching = false));
     },
 
-    // This method asks user for deleting brand confirmation
+    // This method asks the user for deleting brand confirmation
     confirm_destroy_brand(id, name) {
       this.$bvModal
         .msgBoxConfirm("Are you sure about deleting " + name + " brand?", {
@@ -415,7 +415,7 @@ export default {
           // An error occurred
         });
     },
-    // This method is deleting a brand and then fetchs the brands again
+    // This method is deleting a brand and then fetches the brands again
     async destroy_brand(id) {
       const { data } = await this.$axios.$delete(`/brand/${id}`);
       this.makeToast("success", "success", "Brand deleted successfully!");
@@ -462,11 +462,11 @@ export default {
         });
     },
 
-    // This method changes the add new brand modal flag to True 
+    // This method changes the add a new brand modal flag to True  
     addBrandModal() {
       this.addBrandModalShow = true;
     },
-    // This method changes the add new model modal flag to True 
+    // This method changes the add a new model modal flag to True  
     addModelModal() {
       this.addModelModalShow = true;
     },
@@ -518,7 +518,7 @@ export default {
           console.log(error);
         });
     },
-    // This method asks user for deleting model confirmation
+    // This method asks the user for deleting model confirmation
     confirm_destroy_model(id, name) {
       this.$bvModal
         .msgBoxConfirm("Are you sure about deleting " + name + " model?", {
