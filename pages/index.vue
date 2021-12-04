@@ -1,6 +1,10 @@
 <template>
   <div class="container">
     <div class="row d-flex justify-content-center">
+      <a class="" href="#" @click.prevent="logout">
+        <i class="fa fa-lock"></i>
+        Logout
+      </a>
       <div class="col-md-12 d-flex mt-5">
         <div class="col-md-6">
           <h2>Squarelovin <span class="nuxt-text">Test Task</span> Nuxt</h2>
@@ -16,8 +20,86 @@
           </form>
           <div class="form-inline my-2 my-lg-0">
             <b-dropdown id="dropdown-1" text="Add Car / Brand" class="m-md-2">
-              <b-dropdown-item>Add Car</b-dropdown-item>
-              <b-dropdown-item>Add Brand</b-dropdown-item>
+              <b-dropdown-item @click.prevent="addBrandModal()"
+                >Add Car</b-dropdown-item
+              >
+              <b-modal v-model="addBrandModalShow" hide-footer>
+                <h3>Add Car</h3>
+                <form
+                  @submit.prevent="brandCreate()"
+                  @keydown="addBrandForm.onKeydown($event)"
+                >
+                  <input
+                    class="form-control mb-2"
+                    v-model="addBrandForm.name"
+                    type="text"
+                    name="name"
+                  />
+                  <div
+                    class="text-danger m-3"
+                    v-if="addBrandForm.errors.has('name')"
+                    v-html="addBrandForm.errors.get('name')"
+                  />
+                  <button
+                    class="form-control button"
+                    type="submit"
+                    :disabled="addBrandForm.busy"
+                  >
+                    Save
+                  </button>
+                </form>
+              </b-modal>
+              <b-dropdown-item @click.prevent="addModelModal()"
+                >Add Model</b-dropdown-item
+              >
+              <b-modal v-model="addModelModalShow" hide-footer>
+                <h3>Add Model</h3>
+                <form
+                  @submit.prevent="modelCreate()"
+                  @keydown="addModelForm.onKeydown($event)"
+                >
+                  <input
+                    class="form-control mb-2"
+                    v-model="addModelForm.name"
+                    type="text"
+                    name="name"
+                    placeholder="Enter Model Name"
+                  />
+                  <div
+                    class="text-danger m-3"
+                    v-if="addModelForm.errors.has('name')"
+                    v-html="addModelForm.errors.get('name')"
+                  />
+
+                  <label for="brand_id">Choose a car:</label>
+                  <select
+                    id="brand_id"
+                    v-model="addModelForm.brand_id"
+                    class="form-control mb-3"
+                  >
+                    <option
+                      v-for="brand in brands.data"
+                      :value="brand.id"
+                      :key="brand.id"
+                    >
+                      {{ brand.name }}
+                    </option>
+                  </select>
+                  <div
+                    class="text-danger m-3"
+                    v-if="addModelForm.errors.has('brand_id')"
+                    v-html="addModelForm.errors.get('brand_id')"
+                  />
+
+                  <button
+                    class="form-control button"
+                    type="submit"
+                    :disabled="addModelForm.busy"
+                  >
+                    Save
+                  </button>
+                </form>
+              </b-modal>
             </b-dropdown>
           </div>
         </div>
@@ -57,7 +139,9 @@
                       <div class="row" v-if="searching_models">
                         <base-loading>Loading brands ...</base-loading>
                       </div>
-                      <template v-else-if="models.data">
+                      <template
+                        v-else-if="models.data && models.data.length > 0"
+                      >
                         <div class="row p-3">
                           <h4>{{ model_name }}</h4>
                           <table class="table table-striped">
@@ -81,18 +165,54 @@
                                   {{ model.create_dates.created_at_human }}
                                 </td>
                                 <td class="text-right">
-                                  <base-button type="info" size="sm">
-                                    <i class="far fa-edit"></i>
-                                  </base-button>
-                                  <a
-                                    href="#"
+                                  <b-button
+                                    @click.prevent="
+                                      edit_model(model.id, model.name)
+                                    "
+                                    ><i class="far fa-edit"></i
+                                  ></b-button>
+                                  <b-modal v-model="editModelShow" hide-footer>
+                                    <h3>Edit Model</h3>
+                                    <form
+                                      @submit.prevent="
+                                        editModelUpdate(
+                                          model.id,
+                                          brand.id,
+                                          brand.name,
+                                          model.name
+                                        )
+                                      "
+                                      @keydown="editModelForm.onKeydown($event)"
+                                    >
+                                      <input
+                                        class="form-control mb-2"
+                                        v-model="currentModelName"
+                                        type="text"
+                                        name="name"
+                                      />
+                                      <div
+                                        class="text-danger m-3"
+                                        v-if="editModelForm.errors.has('name')"
+                                        v-html="
+                                          editModelForm.errors.get('name')
+                                        "
+                                      />
+                                      <button
+                                        class="form-control button"
+                                        type="submit"
+                                        :disabled="editModelForm.busy"
+                                      >
+                                        Save
+                                      </button>
+                                    </form>
+                                  </b-modal>
+                                  <b-button
                                     class="text-danger"
                                     @click.prevent="
                                       confirm_destroy_model(model.id)
                                     "
-                                    ><base-button type="danger" size="sm">
-                                      <i class="fas fa-trash"></i> </base-button
-                                  ></a>
+                                    ><i class="fas fa-trash"></i
+                                  ></b-button>
                                 </td>
                               </tr>
                             </tbody>
@@ -157,12 +277,22 @@ export default {
   middleware: ["auth"],
   data: () => ({
     modalShow: false,
+    editModelShow: false,
+    addBrandModalShow: false,
+    addModelModalShow: false,
     models: {},
     brands: {},
     model_name: {},
+    currentModelName: {},
     searching: false,
     searching_models: false,
-    form: new Form({
+    editModelForm: new Form({
+      name: "",
+    }),
+    addBrandForm: new Form({
+      name: "",
+    }),
+    addModelForm: new Form({
       name: "",
     }),
   }),
@@ -183,6 +313,9 @@ export default {
     this.fetchBrands();
   },
   methods: {
+    logout() {
+      this.$auth.logout();
+    },
     async fetchBrands(page = 1) {
       this.searching = true;
       await this.$axios
@@ -230,6 +363,7 @@ export default {
         });
     },
     async destroy_brand(id) {
+      console.log(id);
       const { data } = await this.$axios.$delete(`/brand/${id}`);
       this.makeToast("success", "success", "Brand deleted successfully!");
       this.fetchBrands();
@@ -240,6 +374,31 @@ export default {
         toaster: "b-toaster-top-center",
         solid: true,
       });
+    },
+    brandCreate() {
+      this.addBrandForm
+        .post(`/brand`)
+        .then((res) => {
+          this.addBrandForm.reset();
+          this.addBrandModalShow = false;
+          this.fetchBrands();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    modelCreate() {
+      this.addModelForm
+        .post(`/model`)
+        .then((res) => {
+          this.addModelForm.reset();
+          this.addModelModalShow = false;
+          this.fetchBrands();
+          this.show_models(res.data.data.brand.id, res.data.data.brand.name);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     async show_models(id, name) {
       this.searching_models = true;
@@ -257,6 +416,31 @@ export default {
           }
         })
         .finally(() => (this.searching_models = false));
+    },
+    addBrandModal() {
+      this.addBrandModalShow = true;
+    },
+    addModelModal() {
+      this.addModelModalShow = true;
+    },
+    async edit_model(id, name) {
+      this.editModelShow = true;
+      this.currentModelName = name;
+    },
+    editModelUpdate(id, brandId, brandName, name) {
+      console.log(brandId);
+      this.editModelForm.name = this.currentModelName;
+      this.editModelForm
+        .put(`/model/${id}`)
+        .then((res) => {
+          this.editModelShow = false;
+          this.show_models(brandId, brandName);
+          console.log(res);
+          // this.editModelForm.reset();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     confirm_destroy_model(id) {
       this.$bvModal
@@ -279,10 +463,12 @@ export default {
           // An error occurred
         });
     },
-    async destroy_brand(id) {
-      const { data } = await this.$axios.$delete(`/model/${id}`);
-      this.makeToast("success", "success", "Model deleted successfully!");
-      this.fetchBrands();
+    async destroy_model(id) {
+      await this.$axios.$delete(`/model/${id}`).then((res) => {
+        this.makeToast("success", "success", "Model deleted successfully!");
+        this.modalShow = false;
+        this.show_models(res.data.brand.id, res.data.brand.name);
+      });
     },
   },
 };
