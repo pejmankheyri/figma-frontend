@@ -444,7 +444,6 @@ export default {
       this.editBrandForm
         .put(`/brand/${id}`)
         .then((res) => {
-          console.log(res);
           this.editBrandModalShow = false;
           this.fetchBrands();
         })
