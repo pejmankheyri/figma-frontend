@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="d-flex justify-content-start">
+    <div class="d-flex justify-content-start mt-2">
       <div class="">Welcome {{ $auth.user.name }}</div>
       <div class="ml-1">
         <a class="" href="#" @click.prevent="logout">
@@ -19,9 +19,9 @@
         <div class="col-md-6 col-sm-6 d-flex justify-content-end">
           <form class="form-inline my-2 my-lg-0">
             <input
-              class="form-control mr-sm-2"
+              class="form-control search"
               type="search"
-              placeholder="Search"
+              placeholder="Search Brands or Models ..."
               @keyup="search"
               v-model="s"
               aria-label="Search"
@@ -141,11 +141,13 @@
                     </span>
                   </td>
                   <td class="text-right">
-                    <b-button @click.prevent="show_models(brand.id, brand.name)"
+                    <b-button
+                      title="Show Brand Models"
+                      @click.prevent="show_models(brand.id, brand.name)"
                       ><i class="fas fa-search"></i
                     ></b-button>
 
-                    <b-modal v-model="modalShow" ok-only>
+                    <b-modal v-model="modalShow" hide-footer>
                       <div class="row" v-if="searching_models">
                         <base-loading>Loading brands ...</base-loading>
                       </div>
@@ -235,14 +237,24 @@
                         <div class="p-4 w-100">
                           <div class="container">
                             <h6 class="text-center">
-                              There is no Models for this Brand !
+                              There is no Models for this Brand ! <br>
+                              <b-button class="mt-2" @click.prevent="addModelModal()">
+                                Add Model</b-button
+                              >
                             </h6>
                           </div>
                         </div>
                       </template>
                     </b-modal>
+                    <b-button
+                      title="Add Model"
+                      @click.prevent="addModelModal()"
+                    >
+                      <i class="fas fa-plus"></i
+                    ></b-button>
 
                     <b-button
+                      title="Edit Brand Name"
                       @click.prevent="showBrandModal(brand.id, brand.name)"
                     >
                       <i class="far fa-edit"></i>
@@ -275,6 +287,8 @@
                     </b-modal>
 
                     <b-button
+                      title="Delete Brand"
+                      class="text-danger"
                       @click.prevent="
                         confirm_destroy_brand(brand.id, brand.name)
                       "

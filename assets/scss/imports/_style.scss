@@ -3,6 +3,14 @@ body {
     background-color: #e5e5e5;
 }
 
+a {
+    color: #3db986;
+}
+
+a:hover {
+    color: #3db986;
+}
+
 .nuxt-text {
     color: #3db986;
 }
@@ -23,4 +31,26 @@ body {
     background-color: #3db986;
     padding: 0.5rem 1rem;
     line-height: 1.5;
+}
+
+.page-item.active .page-link {
+    z-index: 3;
+    color: #fff;
+    background-color: #3db986;
+    border-color: #3db986;
+}
+
+.page-link {
+    color: #3db986;
+}
+
+.page-link:hover {
+    color: #3db986;
+}
+
+@media (max-width: 767px) {
+    .search {
+        position: absolute;
+        top: 0;
+    }
 }
