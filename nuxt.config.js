@@ -79,6 +79,11 @@ export default {
                 ["@babel/plugin-proposal-private-methods", { "loose": true }],
                 ["@babel/plugin-proposal-private-property-in-object", { "loose": true }]
             ]
+        },
+        extend(config, { isDev, isClient }) {
+            if (isClient && !isDev) {
+                config.optimization.splitChunks.maxSize = 250000
+            }
         }
     }
 }
